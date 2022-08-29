@@ -1,0 +1,42 @@
+version: '3.8'
+services:
+  shorak:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+        - '3000:3000'
+    depends_on:
+      - shorak-db
+      - session-store
+    links:
+      - shorak-db
+      - session-store
+    volumes:
+      - shorak:/var/lib/shorak/data
+  shorak-db:
+    image: postgres:14.1-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=shorak
+    ports:
+      - '5432:5432'
+    volumes:
+      - db:/var/lib/postgresql/data
+  session-store:
+    image: redis:7.0.4-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning
+    volumes:
+      - session-store:/var/lib/redis/data
+volumes:
+  shorak:
+    driver: local
+  db:
+    driver: local
+  session-store:
+    driver: local
